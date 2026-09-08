@@ -1,7 +1,7 @@
 import { createServer } from 'node:http';
 import { timingSafeEqual } from 'node:crypto';
 
-export function createApi({ client, token, groupId, logger }) {
+export function createApi({ client, token, groupId, logger, graphs }) {
   if (!token || token.length < 32) throw new Error('API_TOKEN deve ter pelo menos 32 caracteres.');
   if (!/^\d+(?:-\d+)?@g\.us$/.test(groupId || '')) throw new Error('Configure ALERT_GROUP_ID com o ID do grupo.');
   let busy = false;
@@ -31,7 +31,19 @@ export function createApi({ client, token, groupId, logger }) {
       try { data = JSON.parse(body); } catch { return reply(400, { error: 'JSON inválido' }); }
       if (!data || typeof data.text !== 'string' || !data.text.trim() || data.text.length > 8000) return reply(400, { error: 'text deve conter entre 1 e 8000 caracteres' });
       const result = await client.sendText(groupId, data.text);
-      reply(200, { messageId: result?.key?.id });
+      let graphStatus = 'skipped';
+      if (graphs && typeof data.itemId === 'string' && /^[1-9]\d{0,19}$/.test(data.itemId)) {
+        try {
+          const image = await graphs.getGraph(data.itemId);
+          await client.sendImage(groupId, image, `Gráfico do item ${data.itemId} — última hora`);
+          graphStatus = 'sent';
+        } catch {
+          graphStatus = 'failed';
+          logger.warn('Texto enviado. Gráfico não enviado: confira configuração, permissões e conexão.');
+        }
+      }
+      // Text already sent: graph failure must not trigger a duplicate text retry.
+      reply(200, { messageId: result?.key?.id, graphStatus });
     } catch {
       logger.error('Falha no envio do alerta; confira a conexão WhatsApp.');
       reply(502, { error: 'Falha no envio; resultado pode ser incerto' });

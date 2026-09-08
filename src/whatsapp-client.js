@@ -152,6 +152,18 @@ export class WhatsAppClient {
     return Object.values(groups).map(({ id, subject }) => ({ id, name: subject }));
   }
 
+  async sendImage(recipient, image, caption = '') {
+    if (!Buffer.isBuffer(image) || !image.length || image.length > 5 * 1024 * 1024) {
+      throw new Error('Imagem inválida ou maior que 5 MiB.');
+    }
+    await this.connect();
+    const result = await this.#socket.sendMessage(normalizeRecipient(recipient), {
+      image, caption, mimetype: 'image/png',
+    });
+    logger.info({ messageId: result?.key?.id }, 'Gráfico enviado como imagem.');
+    return result;
+  }
+
   async sendFile(recipient, filePath, caption = '') {
     const absolutePath = path.resolve(filePath);
     const fileInfo = await stat(absolutePath);

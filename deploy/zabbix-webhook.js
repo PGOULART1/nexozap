@@ -3,11 +3,13 @@ var params = JSON.parse(value);
 var request = new HttpRequest();
 request.addHeader('Content-Type: application/json');
 request.addHeader('Authorization: Bearer ' + params.Token);
-var response = request.post(params.URL, JSON.stringify({
-    text: params.Subject + '\n' + params.Message
-}));
+var payload = { text: params.Subject + '\n' + params.Message };
+// In manual tests, replace the macro with a real numeric item ID.
+if (params.ItemId && /^[1-9][0-9]{0,19}$/.test(String(params.ItemId))) {
+    payload.itemId = String(params.ItemId);
+}
+var response = request.post(params.URL, JSON.stringify(payload));
 if (request.getStatus() !== 200) {
     throw 'NexoZap retornou HTTP ' + request.getStatus();
 }
 return JSON.stringify({tags: {}});
-
