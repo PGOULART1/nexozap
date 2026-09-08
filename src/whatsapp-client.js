@@ -146,6 +146,12 @@ export class WhatsAppClient {
     return result;
   }
 
+  async listGroups() {
+    await this.connect();
+    const groups = await this.#socket.groupFetchAllParticipating();
+    return Object.values(groups).map(({ id, subject }) => ({ id, name: subject }));
+  }
+
   async sendFile(recipient, filePath, caption = '') {
     const absolutePath = path.resolve(filePath);
     const fileInfo = await stat(absolutePath);
