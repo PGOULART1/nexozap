@@ -10,3 +10,4 @@ if (request.getStatus() !== 200) {
     throw 'NexoZap retornou HTTP ' + request.getStatus();
 }
 return JSON.stringify({tags: {}});
+
