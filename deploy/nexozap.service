@@ -1,0 +1,29 @@
+[Unit]
+Description=NexoZap WhatsApp Client
+Documentation=file:/opt/nexozap/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=nexozap
+Group=nexozap
+WorkingDirectory=/opt/nexozap
+Environment=NODE_ENV=production
+EnvironmentFile=-/opt/nexozap/.env
+ExecStart=/usr/bin/node /opt/nexozap/src/cli.js login
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=20
+KillSignal=SIGTERM
+
+# Endurecimento básico: o processo só precisa escrever a sessão.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/nexozap
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,25 @@
+{
+  "name": "nexozap",
+  "version": "0.1.0",
+  "description": "Cliente WhatsApp modular com Baileys, autenticação por QR Code e envio de mensagens e arquivos.",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/cli.js login",
+    "login": "node src/cli.js login",
+    "send:text": "node src/cli.js text",
+    "send:file": "node src/cli.js file",
+    "check": "node --check src/cli.js && node --check src/whatsapp-client.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "7.0.0-rc14",
+    "dotenv": "^17.2.2",
+    "pino": "^9.9.5",
+    "pino-pretty": "^13.1.1",
+    "qrcode-terminal": "^0.12.0"
+  }
+}

@@ -1,0 +1,7 @@
+node_modules/
+.env
+data/session/
+*.log
+.DS_Store
+pnpm-debug.log*
+npm-debug.log*
