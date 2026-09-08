@@ -1,6 +1,6 @@
 # NexoZap
 
-MVP independente para conectar uma conta ao WhatsApp por QR Code e enviar textos ou arquivos usando Baileys. O projeto não abre Chromium e não depende de nenhuma instalação do `beezap2`.
+MVP independente para conectar uma conta ao WhatsApp por QR Code e enviar textos ou arquivos usando Baileys. O projeto não abre Chromium e não depende de nenhuma instalação.
 
 > **Aviso:** Baileys é uma biblioteca comunitária e não oficial. Use apenas com contatos que autorizaram as mensagens, evite disparos em massa e respeite os termos do WhatsApp. Atualizações do WhatsApp podem exigir uma atualização da biblioteca.
 
