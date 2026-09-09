@@ -1,6 +1,6 @@
 # Gráficos do Zabbix como imagem no WhatsApp
 
-Atualização para Zabbix 7.0.30 com login local no frontend. Primeiro envia o texto; depois tenta enviar como foto o gráfico do primeiro item da trigger, cobrindo a última hora no momento do envio. Não é captura de dashboard nem gráfico composto de todos os itens da trigger.
+Atualização para Zabbix 7.0.30 com login local no frontend. Busca o gráfico do primeiro item da trigger, cobrindo a última hora no momento do envio, e envia uma foto com o texto do alerta na legenda. Se não conseguir obter o gráfico, envia apenas texto. Não é captura de dashboard nem gráfico composto de todos os itens da trigger. Veja também [mensagem única](MENSAGEM-UNICA.md).
 
 ## 1. Publicar a atualização
 
@@ -79,7 +79,7 @@ O ItemId deve representar um item numérico (por exemplo CPU, tráfego ou dispon
 
 Na janela Testar do tipo de mídia, preencha Subject e Message com textos reais. Em ItemId, substitua a macro por um ID numérico real de um item que o usuário consegue visualizar. Você pode identificar itemid na URL ao abrir a configuração do item em Coleta de dados → Hosts → Itens.
 
-O esperado é uma mensagem de texto seguida da imagem. Deixar {ITEM.ID1} literal na janela de teste envia só texto. Nas ações reais, mantenha a macro na configuração permanente.
+O esperado é uma imagem com o assunto e o corpo do alerta na legenda. Deixar {ITEM.ID1} literal na janela de teste envia só texto. Nas ações reais, mantenha a macro na configuração permanente.
 
 Antes de ampliar o uso, teste um problema e sua recuperação. O recebimento real da imagem não foi validado no ambiente de desenvolvimento: depende do seu frontend, permissões, dados do item e sessão WhatsApp.
 
@@ -88,7 +88,7 @@ Antes de ampliar o uso, teste um problema e sua recuperação. O recebimento rea
 - HTML de login, acesso negado, timeout ou credenciais inválidas não são enviados como imagem. Conteúdo, assinatura PNG, dimensões e tamanho são verificados. Uma imagem de erro gerada pelo próprio Zabbix ainda pode passar pela validação de formato: confira o conteúdo no teste real.
 - O download tem orçamento total de 8 segundos e limite de 5 MiB. As credenciais vão apenas ao HTTPS configurado; redirecionamentos não são seguidos.
 - A sessão frontend fica em memória. Se expirar, tenta um novo login. Uma falha coloca a busca em pausa por 5 minutos para evitar tentativas contínuas de senha. Depois de corrigir a configuração, reinicie a API para limpar a pausa.
-- Se a busca ou envio da imagem falhar após o texto, a API retorna HTTP 200 para não repetir o texto. Os logs informam a falha. O Zabbix pode mostrar sucesso mesmo sem imagem; acompanhe o WhatsApp e journalctl na validação.
+- Se a busca da imagem falhar, envia somente texto e retorna HTTP 200 quando o texto é enviado. Se o envio da foto falhar, retorna HTTP 502 sem tentar texto adicional automaticamente: o resultado do envio pode ser incerto. O Zabbix pode mostrar sucesso mesmo sem imagem quando o fallback de texto funcionar; acompanhe o WhatsApp e journalctl na validação.
 - A resposta HTTP contém graphStatus: sent, failed ou skipped. O webhook mantém sua resposta de sucesso compatível com Zabbix; não cria tags extras.
 - O serviço permanece ocupado enquanto envia texto e imagem. Sem fila persistente ou deduplicação; timeouts após envio podem gerar duplicatas nas novas tentativas do Zabbix.
 - Para desativar somente os gráficos, configure ZABBIX_GRAPHS_ENABLED=false e reinicie nexozap-api.

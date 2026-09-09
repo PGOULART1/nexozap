@@ -30,19 +30,22 @@ export function createApi({ client, token, groupId, logger, graphs }) {
       let data;
       try { data = JSON.parse(body); } catch { return reply(400, { error: 'JSON inválido' }); }
       if (!data || typeof data.text !== 'string' || !data.text.trim() || data.text.length > 8000) return reply(400, { error: 'text deve conter entre 1 e 8000 caracteres' });
-      const result = await client.sendText(groupId, data.text);
+      let image;
       let graphStatus = 'skipped';
       if (graphs && typeof data.itemId === 'string' && /^[1-9]\d{0,19}$/.test(data.itemId)) {
         try {
-          const image = await graphs.getGraph(data.itemId);
-          await client.sendImage(groupId, image, `Gráfico do item ${data.itemId} — última hora`);
-          graphStatus = 'sent';
+          image = await graphs.getGraph(data.itemId);
         } catch {
           graphStatus = 'failed';
-          logger.warn('Texto enviado. Gráfico não enviado: confira configuração, permissões e conexão.');
+          logger.warn('Gráfico indisponível. O alerta será enviado somente como texto.');
         }
       }
-      // Text already sent: graph failure must not trigger a duplicate text retry.
+      // A failed media send may already have reached WhatsApp. Do not send a
+      // second text automatically in that case; return the error to the caller.
+      const result = image
+        ? await client.sendImage(groupId, image, data.text)
+        : await client.sendText(groupId, data.text);
+      if (image) graphStatus = 'sent';
       reply(200, { messageId: result?.key?.id, graphStatus });
     } catch {
       logger.error('Falha no envio do alerta; confira a conexão WhatsApp.');
